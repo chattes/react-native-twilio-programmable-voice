@@ -282,6 +282,8 @@ RCT_REMAP_METHOD(getActiveCall,
     NSLog(@"  >> Ignoring call from %@", callInvite.from);
     return;
   }
+    
+    NSString *Session = [[NSUserDefaults standardUserDefaults]stringForKey:@"SESSION"];
 
   self.callInvite = callInvite;
 
