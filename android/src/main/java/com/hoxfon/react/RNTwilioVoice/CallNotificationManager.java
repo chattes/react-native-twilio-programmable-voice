@@ -12,6 +12,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
@@ -22,7 +23,18 @@ import android.view.WindowManager;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.twilio.voice.CallInvite;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.ExecutionException;
+
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 import static android.content.Context.ACTIVITY_SERVICE;
 
@@ -112,6 +124,43 @@ public class CallNotificationManager {
         return launchIntent;
     }
 
+    class RequestTask extends AsyncTask<Object, String, String>{
+        @Override
+        protected String doInBackground(Object... objects) {
+            String id = (String) objects[0];
+            String sessionId = (String) objects[1];
+            String urlContacts = (String) objects[2];
+            String bot = (String) objects[3];
+
+
+            OkHttpClient client = new OkHttpClient();
+
+            HttpUrl.Builder urlBuilder = HttpUrl.parse(urlContacts).newBuilder();
+            urlBuilder.addQueryParameter("userId", id);
+            urlBuilder.addQueryParameter("botId", bot);
+
+            String url = urlBuilder.build().toString();
+
+            Request request = new Request.Builder().url(url).header("sessionId", sessionId).build();
+
+            String callerName = "Unknown";
+            try{
+                Response response = client.newCall(request).execute();
+                String jsonData = response.body().string();
+                JSONObject jObject = new JSONObject(jsonData);
+                callerName = jObject.getString("userName");
+
+            }catch(IOException e){
+
+            }catch(JSONException e){
+
+            }
+
+            return callerName;
+
+        }
+    }
+
     public void createIncomingCallNotification(ReactApplicationContext context,
                                                CallInvite callInvite,
                                                int notificationId,
@@ -137,6 +186,23 @@ public class CallNotificationManager {
          */
         initCallNotificationsChannel(notificationManager);
 
+        SharedPreferences sharedPref = context.getSharedPreferences("NativeStorage", Context.MODE_PRIVATE);
+        String session = sharedPref.getString("SESSION", "none");
+        String url = sharedPref.getString("URL", "none");
+        String bot = sharedPref.getString("CONTACTS_BOT", "none");
+
+        String caller_id = callInvite.getFrom().split(":")[1];
+        String caller_name = callInvite.getFrom();
+
+        try{
+            caller_name = new RequestTask().execute(caller_id, session, url, bot).get();
+
+        }catch(InterruptedException e){
+
+        }catch(ExecutionException e){
+
+        }
+
         NotificationCompat.Builder notificationBuilder =
                 new NotificationCompat.Builder(context, VOICE_CHANNEL)
                         .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -144,7 +210,7 @@ public class CallNotificationManager {
                         .setCategory(NotificationCompat.CATEGORY_CALL)
                         .setSmallIcon(R.drawable.ic_call_white_24dp)
                         .setContentTitle("Incoming call")
-                        .setContentText(callInvite.getFrom() + " is calling")
+                        .setContentText(caller_name + " is calling")
                         .setOngoing(true)
                         .setAutoCancel(true)
                         .setExtras(extras)
