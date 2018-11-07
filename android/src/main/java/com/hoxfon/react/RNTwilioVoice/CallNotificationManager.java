@@ -191,17 +191,22 @@ public class CallNotificationManager {
         String url = sharedPref.getString("URL", "none");
         String bot = sharedPref.getString("CONTACTS_BOT", "none");
 
-        String caller_id = callInvite.getFrom().split(":")[1];
         String caller_name = callInvite.getFrom();
 
-        try{
-            caller_name = new RequestTask().execute(caller_id, session, url, bot).get();
+        if(caller_name.toLowerCase().contains("client")){
+            String caller_id = callInvite.getFrom().split(":")[1];
 
-        }catch(InterruptedException e){
+            try{
+                caller_name = new RequestTask().execute(caller_id, session, url, bot).get();
 
-        }catch(ExecutionException e){
+            }catch(InterruptedException e){
 
+            }catch(ExecutionException e){
+
+            }
         }
+
+
 
         NotificationCompat.Builder notificationBuilder =
                 new NotificationCompat.Builder(context, VOICE_CHANNEL)
