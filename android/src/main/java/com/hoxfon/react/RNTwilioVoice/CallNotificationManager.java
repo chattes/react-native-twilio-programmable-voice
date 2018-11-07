@@ -30,6 +30,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
@@ -197,11 +199,13 @@ public class CallNotificationManager {
             String caller_id = callInvite.getFrom().split(":")[1];
 
             try{
-                caller_name = new RequestTask().execute(caller_id, session, url, bot).get();
+                caller_name = new RequestTask().execute(caller_id, session, url, bot).get(10000, TimeUnit.MILLISECONDS);
 
             }catch(InterruptedException e){
 
             }catch(ExecutionException e){
+
+            }catch(TimeoutException e){
 
             }
         }
