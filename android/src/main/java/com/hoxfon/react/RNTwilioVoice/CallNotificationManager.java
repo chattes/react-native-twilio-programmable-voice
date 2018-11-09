@@ -193,6 +193,10 @@ public class CallNotificationManager {
         String url = sharedPref.getString("URL", "none");
         String bot = sharedPref.getString("CONTACTS_BOT", "none");
 
+        if(session.equalsIgnoreCase("none")){
+            return;
+        }
+
         String caller_name = callInvite.getFrom();
 
         if(caller_name.toLowerCase().contains("client")){
