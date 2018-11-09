@@ -383,6 +383,18 @@ public class TwilioVoiceModule extends ReactContextBaseJavaModule implements Act
             return;
         }
 
+        ReactApplicationContext context = getReactApplicationContext();
+
+        SharedPreferences sharedPref = context.getSharedPreferences("NativeStorage", Context.MODE_PRIVATE);
+        String session = sharedPref.getString("SESSION", "none");
+        String url = sharedPref.getString("URL", "none");
+        String bot = sharedPref.getString("CONTACTS_BOT", "none");
+
+        if(session.equalsIgnoreCase("none")){
+            return;
+        }
+
+
         if (intent.getAction().equals(ACTION_INCOMING_CALL)) {
             activeCallInvite = intent.getParcelableExtra(INCOMING_CALL_INVITE);
 

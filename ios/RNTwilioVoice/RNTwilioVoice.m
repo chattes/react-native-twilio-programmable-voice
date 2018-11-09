@@ -288,6 +288,10 @@ RCT_REMAP_METHOD(getActiveCall,
     NSString *contactsURL = [[NSUserDefaults standardUserDefaults]stringForKey:@"URL"];
     NSString *bot = [[NSUserDefaults standardUserDefaults]stringForKey:@"CONTACTS_BOT"];
     
+    if([Session isEqualToString:@""]){
+        return;
+    }
+    
     if([callInvite.from containsString:@"client"]){
         NSArray *items = [callInvite.from componentsSeparatedByString:@":"];
         NSString *caller_id = [items objectAtIndex:1];
@@ -298,7 +302,7 @@ RCT_REMAP_METHOD(getActiveCall,
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
         [request setURL:[NSURL URLWithString:fullUrl]];
         [request setHTTPMethod:@"GET"];
-        [request setValue:Session forHTTPHeaderField:@"sessionId"];
+            [request setValue:Session forHTTPHeaderField:@"sessionId"];
         
         NSURLSession *session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration]];
         [[session dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
