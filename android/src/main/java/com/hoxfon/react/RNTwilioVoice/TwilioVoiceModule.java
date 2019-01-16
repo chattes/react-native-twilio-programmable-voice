@@ -798,4 +798,5 @@ public class TwilioVoiceModule extends ReactContextBaseJavaModule implements Act
             ActivityCompat.requestPermissions(getCurrentActivity(), new String[]{Manifest.permission.RECORD_AUDIO}, MIC_PERMISSION_REQUEST_CODE);
         }
     }
+    
 }
