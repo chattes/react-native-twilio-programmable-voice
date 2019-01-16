@@ -33,6 +33,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import okhttp3.Call;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -62,6 +63,7 @@ import static com.hoxfon.react.RNTwilioVoice.TwilioVoiceModule.CLEAR_MISSED_CALL
 public class CallNotificationManager {
 
     private static final String VOICE_CHANNEL = "default";
+    public static String Caller_name_global = "";
 
     private NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
 
@@ -174,6 +176,7 @@ public class CallNotificationManager {
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, launchIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        Caller_name_global = "";
 
         /*
          * Pass the notification id and call sid to use as an identifier to cancel the
@@ -206,13 +209,21 @@ public class CallNotificationManager {
                 caller_name = new RequestTask().execute(caller_id, session, url, bot).get(10000, TimeUnit.MILLISECONDS);
 
             }catch(InterruptedException e){
+                return;
 
             }catch(ExecutionException e){
+                return;
 
             }catch(TimeoutException e){
+                return;
 
             }
+            if(caller_name == "" || caller_name == "Unknown"){
+                return;
+            }
         }
+
+        Caller_name_global = caller_name;
 
 
 
@@ -297,6 +308,10 @@ public class CallNotificationManager {
         extras.putString(CALL_SID_KEY, callInvite.getCallSid());
         extras.putString(NOTIFICATION_TYPE, ACTION_MISSED_CALL);
 
+        if(Caller_name_global == ""){
+            return;
+        }
+
         /*
          * Create the notification shown in the notification drawer
          */
@@ -309,7 +324,7 @@ public class CallNotificationManager {
                         .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                         .setSmallIcon(R.drawable.ic_call_missed_white_24dp)
                         .setContentTitle("Missed call")
-                        .setContentText(callInvite.getFrom() + " called")
+                        .setContentText(Caller_name_global + " called")
                         .setAutoCancel(true)
                         .setShowWhen(true)
                         .setExtras(extras)
@@ -324,7 +339,7 @@ public class CallNotificationManager {
         } else {
             inboxStyle.setBigContentTitle(String.valueOf(missedCalls) + " missed calls");
         }
-        inboxStyle.addLine("from: " +callInvite.getFrom());
+        inboxStyle.addLine("from: " +Caller_name_global);
         sharedPrefEditor.putInt(MISSED_CALLS_GROUP, missedCalls);
         sharedPrefEditor.commit();
 
