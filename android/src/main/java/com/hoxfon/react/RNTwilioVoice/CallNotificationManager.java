@@ -154,6 +154,8 @@ public class CallNotificationManager {
                 JSONObject jObject = new JSONObject(jsonData);
                 callerName = jObject.getString("userName");
 
+                Caller_name_global = callerName;
+
             }catch(IOException e){
 
             }catch(JSONException e){
@@ -234,7 +236,7 @@ public class CallNotificationManager {
                         .setCategory(NotificationCompat.CATEGORY_CALL)
                         .setSmallIcon(R.drawable.ic_call_white_24dp)
                         .setContentTitle("Incoming call")
-                        .setContentText(caller_name + " is calling")
+                        .setContentText(Caller_name_global + " is calling")
                         .setOngoing(true)
                         .setAutoCancel(true)
                         .setExtras(extras)
