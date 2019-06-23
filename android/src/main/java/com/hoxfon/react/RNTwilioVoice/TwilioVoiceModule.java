@@ -15,6 +15,7 @@ import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.os.Build;
 
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
@@ -50,6 +51,8 @@ import com.twilio.voice.Voice;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static com.hoxfon.react.RNTwilioVoice.EventManager.EVENT_CONNECTION_DID_CONNECT;
 import static com.hoxfon.react.RNTwilioVoice.EventManager.EVENT_CONNECTION_DID_DISCONNECT;
@@ -414,13 +417,21 @@ public class TwilioVoiceModule extends ReactContextBaseJavaModule implements Act
                 // send a JS event ONLY if the app's importance is FOREGROUND or SERVICE
                 // at startup the app would try to fetch the activeIncoming calls
                 int appImportance = callNotificationManager.getApplicationImportance(getReactApplicationContext());
+                Log.d(TAG, "handleIncomingCallIntent: App Importance"+appImportance );
                 if (appImportance <= 1001) {
-                    WritableMap params = Arguments.createMap();
+                    final WritableMap params = Arguments.createMap();
                     params.putString("call_sid", activeCallInvite.getCallSid());
                     params.putString("call_from", activeCallInvite.getFrom());
                     params.putString("call_to", activeCallInvite.getTo());
                     params.putString("call_state", activeCallInvite.getState().name());
-                    eventManager.sendEvent(EVENT_DEVICE_DID_RECEIVE_INCOMING, params);
+                    final Handler handler = new Handler();
+                    Log.d(TAG, "handleIncomingCallIntent: Sending JS Event"+appImportance );
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            eventManager.sendEvent(EVENT_DEVICE_DID_RECEIVE_INCOMING, params);
+                        }
+                    }, 2000);
                 }
 
 
@@ -483,6 +494,7 @@ public class TwilioVoiceModule extends ReactContextBaseJavaModule implements Act
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
+            Log.d("Sourav Logging:::", "Incoming"+action);
             if (action.equals(ACTION_INCOMING_CALL)) {
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, "VoiceBroadcastReceiver.onReceive ACTION_INCOMING_CALL. Intent "+ intent.getExtras());
